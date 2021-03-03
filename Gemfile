@@ -2,6 +2,9 @@ source 'https://rubygems.org'
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gem 'rails',      '6.1.0'
+gem 'active_storage_validations'
+# gem 'image_processing', '1.9.3'
+# gem 'mini_magick', '4.9.5'
 gem 'puma',       '5.0.4'
 gem 'sass-rails', '6.0.0'
 gem 'webpacker',  '4.2.2'
