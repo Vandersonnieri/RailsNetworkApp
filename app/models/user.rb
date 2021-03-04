@@ -6,6 +6,16 @@ class User < ApplicationRecord
     before_save { email.downcase! }
 
     has_many :microposts, dependent: :destroy
+    has_many :active_relationships, class_name: "Relationship",
+                foreign_key: "follower_id",
+                dependent: :destroy
+
+    has_many :passive_relationships, class_name: "Relationship",
+                foreign_key: "followed_id",
+                dependent: :destroy
+    
+    has_many :followers, through: :passive_relationships, source: :follower
+    has_many :following, through: :active_relationships, source: :followed
 
     VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i
     validates :name, presence: true, length: { maximum: 50 }
@@ -69,8 +79,25 @@ class User < ApplicationRecord
         reset_sent_at < 2.hours.ago
     end
 
+    # Returns a user's status feed.
     def feed
-        Micropost.where("user_id = ?", id)
+        following_ids = "SELECT followed_id FROM relationships
+                      WHERE follower_id = :user_id"
+        Micropost.where("user_id IN (#{following_ids})
+                      OR user_id = :user_id", user_id: id)
+    end
+
+    # following functionalities
+    def follow(user)
+        following << user
+    end
+
+    def unfollow(user)
+        following.delete(user)
+    end
+
+    def following?(user)
+        following.include?(user)
     end
 
     private
